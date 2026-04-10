@@ -1,0 +1,37 @@
+#!/bin/sh
+# Disable pi-wayvnc-macos:
+#   1. Restore /etc/wayvnc/config from the backup made on first enable.
+#   2. Rename the systemd drop-in back to .disabled.
+#   3. systemctl daemon-reload && restart wayvnc.service.
+#
+# Idempotent: safe to run when already disabled.
+set -eu
+
+CFG=/etc/wayvnc/config
+BACKUP=/etc/wayvnc/config.before-pi-wayvnc-macos
+DROPIN=/etc/systemd/system/wayvnc.service.d/pi-wayvnc-macos.conf
+
+if [ "$(id -u)" -ne 0 ]; then
+    echo "must be run as root" >&2
+    exit 1
+fi
+
+# 1. Restore original config.
+if [ -f "$BACKUP" ]; then
+    install -m 0644 -o root -g root "$BACKUP" "$CFG"
+    echo "Restored $CFG from $BACKUP"
+else
+    echo "No backup at $BACKUP — leaving $CFG untouched."
+fi
+
+# 2. Deactivate drop-in.
+if [ -f "$DROPIN" ]; then
+    mv -f "$DROPIN" "$DROPIN.disabled"
+    echo "Deactivated systemd drop-in."
+fi
+
+# 3. Reload + restart.
+systemctl daemon-reload
+systemctl restart wayvnc.service
+
+echo "pi-wayvnc-macos disabled. Stock wayvnc is now active."

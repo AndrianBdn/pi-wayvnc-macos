@@ -1,0 +1,37 @@
+#!/bin/sh
+set -e
+
+case "$1" in
+    configure)
+        install -d /usr/local/sbin
+        ln -sf /opt/pi-wayvnc-macos/bin/pi-wayvnc-macos-enable        /usr/local/sbin/pi-wayvnc-macos-enable
+        ln -sf /opt/pi-wayvnc-macos/bin/pi-wayvnc-macos-disable       /usr/local/sbin/pi-wayvnc-macos-disable
+        ln -sf /opt/pi-wayvnc-macos/bin/pi-wayvnc-macos-show-password /usr/local/sbin/pi-wayvnc-macos-show-password
+        systemctl daemon-reload || true
+
+        cat <<'EOM'
+
+==========================================================
+  pi-wayvnc-macos installed.
+
+  This package does NOT activate itself. To enable macOS
+  Screen Sharing support:
+
+      sudo pi-wayvnc-macos-enable
+
+  That single command will:
+    - back up /etc/wayvnc/config to
+      /etc/wayvnc/config.before-pi-wayvnc-macos
+    - patch the live config (DES knobs + random password)
+    - restart wayvnc to use the bundled binary
+    - print the generated VNC password
+
+  To revert at any time:
+      sudo pi-wayvnc-macos-disable
+==========================================================
+
+EOM
+        ;;
+esac
+
+exit 0

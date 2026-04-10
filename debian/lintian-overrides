@@ -1,0 +1,15 @@
+# All bundled binaries, libraries and helper scripts intentionally live
+# under /opt/pi-wayvnc-macos/ — that is the whole point of this drop-in
+# package. It deliberately does NOT collide with /usr files owned by the
+# stock Raspberry Pi wayvnc package.
+pi-wayvnc-macos: dir-or-file-in-opt *
+
+# The systemd drop-in is shipped DISABLED (.conf.disabled) and managed via
+# rename by the bundled enable/disable helpers. It is intentionally NOT a
+# dpkg conffile because dpkg-managed conffile state would conflict with
+# helper-managed enable/disable state.
+pi-wayvnc-macos: file-in-etc-not-marked-as-conffile [etc/systemd/system/wayvnc.service.d/pi-wayvnc-macos.conf.disabled]
+
+# This package is not distributed via the Debian archive, so there are no
+# Debian BTS bug numbers to close in the changelog.
+pi-wayvnc-macos: initial-upload-closes-no-bugs *

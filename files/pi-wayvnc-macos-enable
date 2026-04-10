@@ -1,0 +1,150 @@
+#!/bin/sh
+# Enable pi-wayvnc-macos:
+#   1. Sanity-check the stock wayvnc.service shape.
+#   2. Back up /etc/wayvnc/config (first run only).
+#   3. Patch the config: comment enable_pam, append DES knobs and a fresh
+#      random 8-character password.
+#   4. Activate the systemd drop-in (.conf.disabled -> .conf).
+#   5. systemctl daemon-reload && restart wayvnc.service.
+#   6. Print the password.
+#
+# Idempotent: safe to re-run; regenerates the password each time. The
+# pristine backup is created only on the first run and never overwritten.
+set -eu
+
+CFG=/etc/wayvnc/config
+BACKUP=/etc/wayvnc/config.before-pi-wayvnc-macos
+DROPIN_DIR=/etc/systemd/system/wayvnc.service.d
+DROPIN_NAME=pi-wayvnc-macos.conf
+
+if [ "$(id -u)" -ne 0 ]; then
+    echo "must be run as root" >&2
+    exit 1
+fi
+
+if [ ! -f "$CFG" ]; then
+    echo "ERROR: $CFG not found — is wayvnc installed?" >&2
+    exit 1
+fi
+
+# 1. Sanity-check stock unit shape.
+USER_=$(systemctl show wayvnc.service -p User --value 2>/dev/null || true)
+TYPE_=$(systemctl show wayvnc.service -p Type  --value 2>/dev/null || true)
+if [ "$USER_" != "vnc" ] || [ "$TYPE_" != "notify" ]; then
+    cat >&2 <<EOF
+ERROR: wayvnc.service shape changed (User=$USER_ Type=$TYPE_)
+
+Aborting. The stock Raspberry Pi wayvnc.service is expected to run as
+user "vnc" with Type=notify. Reinstall stock wayvnc and try again:
+
+    sudo apt install --reinstall wayvnc
+EOF
+    exit 1
+fi
+
+# 2. Backup config (first run only).
+if [ ! -f "$BACKUP" ]; then
+    cp -a "$CFG" "$BACKUP"
+    chmod 0640 "$BACKUP"
+    chown root:vnc "$BACKUP" 2>/dev/null || true
+fi
+
+# 3. Determine the password.
+#    If the live config already has a pi-wayvnc-macos-managed password,
+#    preserve it (so re-running enable as a no-op doesn't surprise the
+#    user with a new password they then have to re-enter on macOS).
+#    Otherwise generate a fresh random 8-character password from a
+#    human-friendly alphabet (no 0/O, 1/I/l). DES VNC-Auth only uses the
+#    first 8 chars, so 8 is the useful maximum.
+PASSWORD=$(awk '
+    /^# --- pi-wayvnc-macos ---/         { in_block = 1; next }
+    /^# --- end pi-wayvnc-macos ---/     { in_block = 0; next }
+    in_block && /^[[:space:]]*password[[:space:]]*=/ {
+        sub(/^[[:space:]]*password[[:space:]]*=[[:space:]]*/, "", $0)
+        print
+        exit
+    }
+' "$CFG" 2>/dev/null || true)
+
+if [ -z "$PASSWORD" ]; then
+    PASSWORD=$(LC_ALL=C tr -dc 'A-HJ-NP-Za-km-z2-9' < /dev/urandom | head -c 8 || true)
+    if [ -z "$PASSWORD" ] || [ "$(printf '%s' "$PASSWORD" | wc -c)" -ne 8 ]; then
+        echo "ERROR: failed to generate password" >&2
+        exit 1
+    fi
+    PASSWORD_NEW=1
+else
+    PASSWORD_NEW=0
+fi
+
+# 4. Patch the config: strip any existing pi-wayvnc-macos block, comment
+#    enable_pam, append a fresh block.
+TMP=$(mktemp)
+trap 'rm -f "$TMP"' EXIT
+
+awk '
+    /^# --- pi-wayvnc-macos ---/         { skip = 1; next }
+    /^# --- end pi-wayvnc-macos ---/     { skip = 0; next }
+    skip                                 { next }
+    /^[[:space:]]*enable_pam[[:space:]]*=/         { print "# " $0 "  # disabled by pi-wayvnc-macos"; next }
+    /^[[:space:]]*allow_broken_crypto[[:space:]]*=/ { next }
+    /^[[:space:]]*relax_encryption[[:space:]]*=/   { next }
+    /^[[:space:]]*password[[:space:]]*=/           { next }
+    { print }
+' "$CFG" > "$TMP"
+
+# Ensure enable_auth is present (set to true).
+if ! grep -Eq '^[[:space:]]*enable_auth[[:space:]]*=' "$TMP"; then
+    echo "enable_auth=true" >> "$TMP"
+fi
+
+cat >> "$TMP" <<EOF
+
+# --- pi-wayvnc-macos ---
+# Added by pi-wayvnc-macos-enable. Removed by pi-wayvnc-macos-disable.
+allow_broken_crypto=true
+relax_encryption=true
+password=$PASSWORD
+# --- end pi-wayvnc-macos ---
+EOF
+
+# 5. Atomic replace + tighten perms (config now contains the password).
+install -m 0640 -o root -g vnc "$TMP" "$CFG"
+
+# 6. Activate the systemd drop-in.
+install -d "$DROPIN_DIR"
+if [ -f "$DROPIN_DIR/$DROPIN_NAME.disabled" ]; then
+    mv -f "$DROPIN_DIR/$DROPIN_NAME.disabled" "$DROPIN_DIR/$DROPIN_NAME"
+fi
+if [ ! -f "$DROPIN_DIR/$DROPIN_NAME" ]; then
+    echo "ERROR: drop-in $DROPIN_NAME not found in $DROPIN_DIR" >&2
+    echo "       Reinstall pi-wayvnc-macos: sudo apt install --reinstall pi-wayvnc-macos" >&2
+    exit 1
+fi
+
+systemctl daemon-reload
+systemctl restart wayvnc.service
+
+# 7. Print the password.
+HOSTNAME_=$(hostname 2>/dev/null || echo raspberrypi)
+if [ "$PASSWORD_NEW" -eq 1 ]; then
+    PW_LABEL="Generated VNC password (write this down):"
+else
+    PW_LABEL="VNC password (unchanged from previous enable):"
+fi
+cat <<EOF
+
+============================================================
+  pi-wayvnc-macos enabled.
+
+  $PW_LABEL
+
+      $PASSWORD
+
+  Connect from macOS:
+    Finder -> Go -> Connect to Server -> vnc://${HOSTNAME_}.local
+
+  See this password again:  sudo pi-wayvnc-macos-show-password
+  Revert to stock VNC:      sudo pi-wayvnc-macos-disable
+============================================================
+EOF

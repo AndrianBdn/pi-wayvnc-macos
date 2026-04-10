@@ -1,0 +1,7 @@
+/out/
+/sources/*
+!/sources/manifest.txt
+*.deb
+*.buildinfo
+*.changes
+.*.swp

@@ -1,0 +1,20 @@
+Package: pi-wayvnc-macos
+Version: @VERSION@
+Section: admin
+Priority: optional
+Architecture: @ARCH@
+Maintainer: Andrian Budantsov <AndrianBdn@users.noreply.github.com>
+Homepage: https://github.com/AndrianBdn/pi-wayvnc-macos
+Depends: wayvnc (>= 0.9.1-1+rpt5), systemd, @SHLIB_DEPS@
+Description: wayvnc fork with DES VNC-Auth for macOS Screen Sharing
+ Drop-in override for the Raspberry Pi wayvnc package that adds support for
+ VNC security type 2 (DES authentication) so that macOS Screen Sharing.app
+ can connect to a Raspberry Pi Wayland desktop.
+ .
+ Installs isolated binaries and libraries under /opt/pi-wayvnc-macos/ and
+ overrides wayvnc.service via a systemd drop-in. Does not replace any files
+ owned by the stock wayvnc or libneatvnc0 packages, so apt remove cleanly
+ reverts to stock VNC.
+ .
+ SECURITY: DES VNC-Auth is cryptographically broken (8-character maximum,
+ weak hash). Use only on trusted networks or behind an SSH tunnel.

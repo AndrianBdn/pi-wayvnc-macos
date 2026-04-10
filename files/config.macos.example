@@ -1,0 +1,33 @@
+# Example /etc/wayvnc/config for macOS Screen Sharing.app via DES VNC-Auth.
+#
+# You normally do NOT need to edit this file by hand — running
+#   sudo pi-wayvnc-macos-enable
+# will patch your existing /etc/wayvnc/config automatically and generate a
+# random password. This file is here for reference and for users who prefer
+# to manage the config themselves.
+#
+# MERGE these changes — do not wholesale replace your existing file. Your
+# stock TLS / RSA key paths should stay intact (neatvnc will still advertise
+# RSA-AES + VeNCrypt alongside VNC-Auth; macOS will pick VNC-Auth).
+#
+# SECURITY: DES VNC-Auth is cryptographically broken. Trusted LAN only.
+
+use_relative_paths=true
+address=::
+enable_auth=true
+
+# REMOVE or comment any enable_pam line — the bundled binary has PAM
+# compiled out, so this key is silently ignored.
+# enable_pam=true
+
+# DES auth knobs (added by pi-wayvnc-macos-enable):
+allow_broken_crypto=true
+relax_encryption=true
+
+# Shared password (only the first 8 characters are used by DES VNC-Auth).
+password=CHANGEME
+
+# Existing TLS / RSA key lines (left untouched):
+private_key_file=tls_key.pem
+certificate_file=tls_cert.pem
+rsa_private_key_file=rsa_key.pem

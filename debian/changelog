@@ -1,0 +1,12 @@
+pi-wayvnc-macos (1.0.0-1) unstable; urgency=low
+
+  * Initial release.
+  * Drop-in package: bundles wayvnc + libneatvnc + libaml under
+    /opt/pi-wayvnc-macos/ and overrides the stock wayvnc.service via a
+    systemd drop-in.
+  * Adds support for VNC security type 2 (DES VNC-Auth) so macOS Screen
+    Sharing can connect to wayvnc on Raspberry Pi.
+  * Built from upstream any1/aml v1.0.0, any1/neatvnc master, any1/wayvnc
+    master (see /opt/pi-wayvnc-macos/share/manifest.txt for pinned SHAs).
+
+ -- Andrian Budantsov <AndrianBdn@users.noreply.github.com>  Wed, 08 Apr 2026 00:00:00 +0000

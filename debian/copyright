@@ -1,0 +1,37 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: pi-wayvnc-macos
+Upstream-Contact: Andrian Budantsov <AndrianBdn@users.noreply.github.com>
+Source: https://github.com/AndrianBdn/pi-wayvnc-macos
+
+Files: *
+Copyright: 2026 Andrian Budantsov
+License: ISC
+
+Files: opt/pi-wayvnc-macos/bin/wayvnc
+       opt/pi-wayvnc-macos/bin/wayvncctl
+Copyright: 2019-2026 Andri Yngvason and contributors
+License: ISC
+Comment: Built from upstream https://github.com/any1/wayvnc
+
+Files: opt/pi-wayvnc-macos/lib/libneatvnc.so.*
+Copyright: 2019-2026 Andri Yngvason and contributors
+License: ISC
+Comment: Built from upstream https://github.com/any1/neatvnc
+
+Files: opt/pi-wayvnc-macos/lib/libaml.so.*
+Copyright: 2020-2026 Andri Yngvason and contributors
+License: ISC
+Comment: Built from upstream https://github.com/any1/aml
+
+License: ISC
+ Permission to use, copy, modify, and/or distribute this software for any
+ purpose with or without fee is hereby granted, provided that the above
+ copyright notice and this permission notice appear in all copies.
+ .
+ THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+ WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+ MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+ ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+ WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.

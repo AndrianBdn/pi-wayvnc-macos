@@ -1,0 +1,21 @@
+#!/bin/sh
+set -e
+
+case "$1" in
+    remove|purge)
+        rm -f /etc/systemd/system/wayvnc.service.d/pi-wayvnc-macos.conf
+        rm -f /etc/systemd/system/wayvnc.service.d/pi-wayvnc-macos.conf.disabled
+        rmdir /etc/systemd/system/wayvnc.service.d 2>/dev/null || true
+        rm -f /usr/local/sbin/pi-wayvnc-macos-enable \
+              /usr/local/sbin/pi-wayvnc-macos-disable \
+              /usr/local/sbin/pi-wayvnc-macos-show-password
+        systemctl daemon-reload || true
+        ;;
+esac
+
+# NOTE: /etc/wayvnc/config.before-pi-wayvnc-macos is intentionally left in
+# place even on purge — it is the user's only safety net if disable was
+# never run. Restore manually:
+#   sudo mv /etc/wayvnc/config.before-pi-wayvnc-macos /etc/wayvnc/config
+
+exit 0

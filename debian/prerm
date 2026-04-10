@@ -1,0 +1,12 @@
+#!/bin/sh
+set -e
+
+case "$1" in
+    remove|deconfigure)
+        if [ -x /opt/pi-wayvnc-macos/bin/pi-wayvnc-macos-disable ]; then
+            /opt/pi-wayvnc-macos/bin/pi-wayvnc-macos-disable || true
+        fi
+        ;;
+esac
+
+exit 0
