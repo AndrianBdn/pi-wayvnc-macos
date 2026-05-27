@@ -3,5 +3,5 @@
 # Reproduce: git -C sources/<name> checkout <sha>
 
 aml      v1.0.0   685035c9830aa89df02a43df89b644690bd885f5  https://github.com/any1/aml
-neatvnc  master   37e1b5503361c896dad8ca4b1ef596349e46831b  https://github.com/any1/neatvnc
-wayvnc   master   854edbbde0673b22386086dc98d1c89bee86966e  https://github.com/any1/wayvnc
+neatvnc  v1.0.0   57cc64b3871c429800e25ed5724b1b2c7a04e134  https://github.com/any1/neatvnc
+wayvnc   v0.10.0  23fa174e3832841b5730789ded7fe38caf6bce88  https://github.com/any1/wayvnc

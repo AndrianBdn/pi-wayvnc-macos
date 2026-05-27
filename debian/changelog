@@ -1,3 +1,19 @@
+pi-wayvnc-macos (1.1.0-1) unstable; urgency=low
+
+  * Refresh bundled upstreams to tagged releases:
+    - any1/wayvnc v0.10.0 (was master @ 854edbb)
+    - any1/neatvnc v1.0.0 (was master @ 37e1b55)
+    - any1/aml v1.0.0 (unchanged)
+  * neatvnc SONAME bumped from libneatvnc.so.0 to libneatvnc.so.1.
+  * postinst now restarts wayvnc.service on upgrade when the drop-in is
+    enabled, so the new bundled binary takes effect immediately instead of
+    waiting for a manual restart or reboot.
+  * postinst now refreshes the enabled systemd drop-in from the shipped
+    template on upgrade, so changes to the drop-in take effect even though
+    the active file is renamed out of dpkg's tracking by the enable script.
+
+ -- Andrian Budantsov <AndrianBdn@users.noreply.github.com>  Wed, 27 May 2026 00:00:00 +0000
+
 pi-wayvnc-macos (1.0.0-1) unstable; urgency=low
 
   * Initial release.

@@ -1,5 +1,5 @@
 IMAGE   := pi-wayvnc-macos-builder
-VERSION := 1.0.0-1
+VERSION := 1.1.0-1
 
 .PHONY: deb image sources clean distclean
 

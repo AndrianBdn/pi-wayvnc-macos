@@ -1,15 +1,37 @@
 #!/bin/sh
 set -e
 
+DROPIN=/etc/systemd/system/wayvnc.service.d/pi-wayvnc-macos.conf
+
 case "$1" in
     configure)
         install -d /usr/local/sbin
         ln -sf /opt/pi-wayvnc-macos/bin/pi-wayvnc-macos-enable        /usr/local/sbin/pi-wayvnc-macos-enable
         ln -sf /opt/pi-wayvnc-macos/bin/pi-wayvnc-macos-disable       /usr/local/sbin/pi-wayvnc-macos-disable
         ln -sf /opt/pi-wayvnc-macos/bin/pi-wayvnc-macos-show-password /usr/local/sbin/pi-wayvnc-macos-show-password
+
+        # On upgrade ($2 = old version), if the drop-in is enabled (.conf
+        # exists), refresh its content from the freshly-installed template
+        # (.conf.disabled). The enabled file is renamed from the template by
+        # pi-wayvnc-macos-enable, so dpkg doesn't track it — without this,
+        # changes to the shipped drop-in would never take effect on upgrade.
+        if [ -n "${2:-}" ] && [ -f "$DROPIN" ] && [ -f "$DROPIN.disabled" ]; then
+            if ! cmp -s "$DROPIN.disabled" "$DROPIN"; then
+                cp -a "$DROPIN.disabled" "$DROPIN"
+                echo "pi-wayvnc-macos: refreshed systemd drop-in from new template."
+            fi
+        fi
+
         systemctl daemon-reload || true
 
-        cat <<'EOM'
+        # On upgrade, if the drop-in is enabled, restart wayvnc so the new
+        # bundled binary + libs (and any refreshed drop-in) take effect
+        # immediately instead of leaving the old binary mmap'd until reboot.
+        if [ -n "${2:-}" ] && [ -f "$DROPIN" ]; then
+            systemctl restart wayvnc.service || true
+            echo "pi-wayvnc-macos upgraded — wayvnc.service restarted."
+        elif [ -z "${2:-}" ]; then
+            cat <<'EOM'
 
 ==========================================================
   pi-wayvnc-macos installed.
@@ -31,6 +53,7 @@ case "$1" in
 ==========================================================
 
 EOM
+        fi
         ;;
 esac
 

@@ -60,7 +60,7 @@ install -m 0755 "$STAGING/bin/wayvncctl" "$PKG$PREFIX/bin/wayvncctl"
 
 # Copy versioned .so + soname symlinks; drop unversioned dev symlinks
 cp -a "$STAGING/lib/libaml.so.1"*     "$PKG$PREFIX/lib/"
-cp -a "$STAGING/lib/libneatvnc.so.0"* "$PKG$PREFIX/lib/"
+cp -a "$STAGING/lib/libneatvnc.so.1"* "$PKG$PREFIX/lib/"
 rm -f "$PKG$PREFIX/lib/libaml.so" "$PKG$PREFIX/lib/libneatvnc.so"
 
 # Set DT_RUNPATH = $ORIGIN/../lib so binaries find bundled libs without
@@ -68,14 +68,14 @@ rm -f "$PKG$PREFIX/lib/libaml.so" "$PKG$PREFIX/lib/libneatvnc.so"
 echo "==> Setting RPATH on bundled ELFs"
 for f in "$PKG$PREFIX/bin/wayvnc" \
          "$PKG$PREFIX/bin/wayvncctl" \
-         "$PKG$PREFIX/lib"/libneatvnc.so.0.0.0; do
+         "$PKG$PREFIX/lib"/libneatvnc.so.1.0.0; do
     patchelf --set-rpath '$ORIGIN/../lib' "$f"
 done
 
 echo "==> Stripping binaries"
 strip --strip-unneeded "$PKG$PREFIX"/bin/wayvnc "$PKG$PREFIX"/bin/wayvncctl
 strip --strip-unneeded "$PKG$PREFIX"/lib/libaml.so.1.0.0 || true
-strip --strip-unneeded "$PKG$PREFIX"/lib/libneatvnc.so.0.0.0 || true
+strip --strip-unneeded "$PKG$PREFIX"/lib/libneatvnc.so.1.0.0 || true
 
 # Shared libraries should be 0644, not 0755 (Debian convention).
 chmod 0644 "$PKG$PREFIX"/lib/*.so.*
@@ -83,7 +83,7 @@ chmod 0644 "$PKG$PREFIX"/lib/*.so.*
 # Sanity-check RPATH and bundled lib resolution
 echo "==> Verifying RPATH and library resolution"
 for f in "$PKG$PREFIX/bin/wayvnc" "$PKG$PREFIX/bin/wayvncctl" \
-         "$PKG$PREFIX/lib"/libneatvnc.so.0.0.0; do
+         "$PKG$PREFIX/lib"/libneatvnc.so.1.0.0; do
     rp=$(patchelf --print-rpath "$f")
     if [ "$rp" != '$ORIGIN/../lib' ]; then
         echo "ERROR: $f has unexpected RPATH: $rp" >&2
@@ -96,12 +96,12 @@ done
 # how $ORIGIN/../lib expands).
 unset LD_LIBRARY_PATH
 LDD_OUT=$(LD_LIBRARY_PATH= ldd "$PKG$PREFIX/bin/wayvnc")
-neatvnc_line=$(echo "$LDD_OUT" | grep -E '^\s*libneatvnc\.so\.0' || true)
+neatvnc_line=$(echo "$LDD_OUT" | grep -E '^\s*libneatvnc\.so\.1' || true)
 aml_line=$(echo "$LDD_OUT" | grep -E '^\s*libaml\.so\.1' || true)
 case "$neatvnc_line" in
     *"$PKG$PREFIX"/*) ;;
     *)
-        echo "ERROR: wayvnc resolves libneatvnc.so.0 from outside the bundle:" >&2
+        echo "ERROR: wayvnc resolves libneatvnc.so.1 from outside the bundle:" >&2
         echo "  $neatvnc_line" >&2
         exit 1 ;;
 esac
@@ -174,7 +174,7 @@ SHLIB_INPUT_DIR="$PKG"
 dpkg-shlibdeps -O --ignore-missing-info \
     "$SHLIB_INPUT_DIR/opt/pi-wayvnc-macos/bin/wayvnc" \
     "$SHLIB_INPUT_DIR/opt/pi-wayvnc-macos/bin/wayvncctl" \
-    "$SHLIB_INPUT_DIR/opt/pi-wayvnc-macos/lib/libneatvnc.so.0.0.0" > shlibs.out 2>shlibs.err || {
+    "$SHLIB_INPUT_DIR/opt/pi-wayvnc-macos/lib/libneatvnc.so.1.0.0" > shlibs.out 2>shlibs.err || {
         cat shlibs.err >&2
         echo "ERROR: dpkg-shlibdeps failed" >&2
         exit 1
