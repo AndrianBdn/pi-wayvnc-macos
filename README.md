@@ -44,11 +44,19 @@ Download the `.deb` from
 [GitHub Releases](https://github.com/AndrianBdn/pi-wayvnc-macos/releases/latest),
 then on your Pi:
 
-    sudo apt install ./pi-wayvnc-macos_1.0.0-1_arm64.deb
+    sudo apt install ./pi-wayvnc-macos_1.1.0-1_arm64.deb
     sudo pi-wayvnc-macos-enable
 
 The install places files under `/opt/pi-wayvnc-macos/` but does **not**
 activate anything — your existing VNC keeps working until you run `enable`.
+
+### Upgrading from an earlier version
+
+    sudo apt install ./pi-wayvnc-macos_1.1.0-1_arm64.deb
+
+That's it — no need to run `enable` again. `/etc/wayvnc/config` and the
+saved VNC password are preserved, and `wayvnc.service` is restarted
+automatically so the new binary takes effect immediately.
 
 `enable` backs up `/etc/wayvnc/config`, patches it for DES auth, generates
 a random VNC password, restarts `wayvnc`, and prints the password:
@@ -83,7 +91,7 @@ Requires Docker on the Pi (or any aarch64 Linux host):
     cd pi-wayvnc-macos
     make deb
 
-Output: `./out/pi-wayvnc-macos_1.0.0-1_arm64.deb`. The build runs inside a
+Output: `./out/pi-wayvnc-macos_1.1.0-1_arm64.deb`. The build runs inside a
 `debian:trixie-slim` container. Upstream sources are cloned automatically
 from the commits pinned in `sources/manifest.txt`.
 
